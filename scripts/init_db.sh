@@ -33,8 +33,8 @@ then
   -e POSTGRES_PASSWORD=${DB_PASSWORD} \
   -e POSTGRES_DB=${DB_NAME} \
   -p "${DB_PORT}":5432 \
-  -d postgres \
-  postgres -N 1000
+  -d postgres:18.1 \
+   -N 1000
 fi
 # ^ Increased maximum number of connections for testing purposes
 
