@@ -37,19 +37,19 @@ jobs:
           --no-default-features
           --locked
       - name: Create app user in Postgres
-              run: |
-                sudo apt-get install postgresql-client
+        run: |
+          sudo apt-get install postgresql-client
 
-                # Create the application user
-                CREATE_QUERY="CREATE USER ${APP_USER} WITH PASSWORD '${APP_USER_PWD}';"
-                PGPASSWORD="password" psql -U "postgres" -h "localhost" -c "${CREATE_QUERY}"
+          # Create the application user
+          CREATE_QUERY="CREATE USER ${APP_USER} WITH PASSWORD '${APP_USER_PWD}';"
+          PGPASSWORD="password" psql -U "postgres" -h "localhost" -c "${CREATE_QUERY}"
 
-                # Grant create db privileges to the app user
-                GRANT_QUERY="ALTER USER ${APP_USER} CREATEDB;"
-                PGPASSWORD="password" psql -U "postgres" -h "localhost" -c "${GRANT_QUERY}"
+          # Grant create db privileges to the app user
+          GRANT_QUERY="ALTER USER ${APP_USER} CREATEDB;"
+          PGPASSWORD="password" psql -U "postgres" -h "localhost" -c "${GRANT_QUERY}"
 
-            - name: Migrate database
-              run: SKIP_DOCKER=true ./scripts/init_db.sh
+      - name: Migrate database
+        run: SKIP_DOCKER=true ./scripts/init_db.sh
       # - uses: Swatinem/rust-cache@v2
       - name: Run tests
         run: cargo test
@@ -60,7 +60,7 @@ jobs:
     name: Rustfmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
@@ -71,7 +71,7 @@ jobs:
     name: Clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
@@ -87,7 +87,7 @@ jobs:
       options: --security-opt seccomp=unconfined
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Generate code coverage
         run: |
           cargo tarpaulin --verbose --workspace
