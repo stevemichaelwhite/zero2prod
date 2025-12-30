@@ -4,8 +4,8 @@ on: [push, pull_request]
 
 env:
   CARGO_TERM_COLOR: always
-  SQLX_VERSION: 0.8.0
-  SQLX_FEATURES: runtime-tokio, postgres
+  SQLX_VERSION: 0.5.7
+  SQLX_FEATURES: postgres
   APP_USER: app
   APP_USER_PWD: secret
   APP_DB_NAME: newsletter
