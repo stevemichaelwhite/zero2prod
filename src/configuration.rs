@@ -29,11 +29,13 @@ impl DatabaseSettings {
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
     // Initialise our configuration reader
-    let settings = config::Config::builder().add_source(config::File::with_name("configuration")).build()?;
+    let settings = config::Config::builder()
+        .add_source(config::File::with_name("configuration"))
+        .build()?;
     // Add configuration values from a file named `configuration`.
     // It will look for any top-level file with an extension
     // that `config` knows how to parse: yaml, json, etc.
-    
+
     // Try to convert the configuration values it read into
     // our Settings type
     settings.try_deserialize()
