@@ -95,6 +95,31 @@ jobs:
       # Opens tcp port 5432 on the host and service container
         ports:
           - 5432:5432
+    steps:
+      - name: Check out the repository code
+        uses: actions/checkout@v4
+      - name: Install the Rust toolchain  
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install sqlx-cli 
+        run: cargo install sqlx-cli
+          --version=${{ env.SQLX_VERSION }}
+          --features ${{ env.SQLX_FEATURES }}
+          --no-default-features
+          --locked
+      - name: Create app user in Postgres
+        run: |
+          sudo apt-get install postgresql-client
+
+          # Create the application user
+          CREATE_QUERY="CREATE USER ${APP_USER} WITH PASSWORD '${APP_USER_PWD}';"
+          PGPASSWORD="password" psql -U "postgres" -h "localhost" -c "${CREATE_QUERY}"
+
+          # Grant create db privileges to the app user
+          GRANT_QUERY="ALTER USER ${APP_USER} CREATEDB;"
+          PGPASSWORD="password" psql -U "postgres" -h "localhost" -c "${GRANT_QUERY}"
+
+      - name: Migrate database
+        run: SKIP_DOCKER=true ./scripts/init_db.sh
     container:
       image: xd009642/tarpaulin
       options: --security-opt seccomp=unconfined
