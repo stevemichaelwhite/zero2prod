@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 env:
   CARGO_TERM_COLOR: always
-  SQLX_VERSION: 0.5.7
+  SQLX_VERSION: 0.8.6
   SQLX_FEATURES: postgres
   APP_USER: app
   APP_USER_PWD: secret
@@ -54,8 +54,7 @@ jobs:
       - name: Run tests
         run: cargo test
       - name: Check that queries are fresh
-        # run: cargo sqlx prepare -- --bin zero2prod
-        run: cargo sqlx prepare --workspace --check -- --all-targets
+        run: cargo sqlx prepare --check -- --all-targets
 
   fmt:
     name: Rustfmt
