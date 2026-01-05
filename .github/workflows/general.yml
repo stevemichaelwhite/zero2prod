@@ -111,7 +111,7 @@ jobs:
           --locked
       - name: Create app user in Postgres
         run: |
-          sudo apt-get install postgresql-client
+          apt-get install postgresql-client
 
           # Create the application user
           CREATE_QUERY="CREATE USER ${APP_USER} WITH PASSWORD '${APP_USER_PWD}';"
