@@ -95,6 +95,9 @@ jobs:
       # Opens tcp port 5432 on the host and service container
         ports:
           - 5432:5432
+    container:
+      image: xd009642/tarpaulin
+      options: --security-opt seccomp=unconfined
     steps:
       - name: Check out the repository code
         uses: actions/checkout@v4
@@ -120,12 +123,6 @@ jobs:
 
       - name: Migrate database
         run: SKIP_DOCKER=true ./scripts/init_db.sh
-    container:
-      image: xd009642/tarpaulin
-      options: --security-opt seccomp=unconfined
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
       - name: Generate code coverage
         run: |
           cargo tarpaulin --verbose --workspace
