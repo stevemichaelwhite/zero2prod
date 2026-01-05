@@ -1,12 +1,20 @@
-use std::net::TcpListener;
+use std::{net::TcpListener, sync::Once};
 
-
-use sqlx::{PgConnection, Connection, PgPool, Executor};
+use env_logger::Env;
+use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
-use zero2prod::configuration::{get_configuration, DatabaseSettings};
+use zero2prod::configuration::{DatabaseSettings, get_configuration};
 pub struct TestApp {
     pub address: String,
     pub db_pool: PgPool,
+}
+
+static INIT: Once = Once::new();
+
+fn init_logger() {
+    INIT.call_once(|| {
+        env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+    });
 }
 
 pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
@@ -34,7 +42,7 @@ async fn spawn_app() -> TestApp {
     let address = format!("http://127.0.0.1:{}", port);
     let mut configuration = get_configuration().expect("Failed to read configuration");
     configuration.database.database_name = Uuid::new_v4().into();
-    let db_pool=configure_database( &configuration.database).await;
+    let db_pool = configure_database(&configuration.database).await;
     let server = zero2prod::run(listener, db_pool.clone()).expect("Failed to bind to address.");
     let _ = tokio::spawn(server);
     TestApp { address, db_pool }
@@ -42,6 +50,7 @@ async fn spawn_app() -> TestApp {
 
 #[tokio::test]
 async fn health_check_works() {
+    init_logger();
     let app = spawn_app().await;
     let address = app.address.as_str();
     let client = reqwest::Client::new();
@@ -57,6 +66,7 @@ async fn health_check_works() {
 
 #[tokio::test]
 async fn subscribe_returns_200_for_valid_form_data() {
+    init_logger();
     let app = spawn_app().await;
     let address = app.address.as_str();
     let connection = app.db_pool;
@@ -81,6 +91,7 @@ async fn subscribe_returns_200_for_valid_form_data() {
 
 #[tokio::test]
 async fn subscribe_returns_400_when_data_is_missing() {
+    init_logger();
     let app = spawn_app().await;
     let address = app.address.as_str();
     let _connection = app.db_pool;

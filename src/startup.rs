@@ -1,6 +1,7 @@
 use actix_web::{App, HttpServer, dev::Server, web};
 use sqlx::PgPool;
 use std::net::TcpListener;
+use actix_web::middleware::Logger;
 
 use crate::routes::health_check;
 use crate::routes::subscribe;
@@ -8,6 +9,7 @@ pub fn run(listener: TcpListener, connection_pool: PgPool) -> Result<Server, std
     let connection_pool = web::Data::new(connection_pool);
     let server = HttpServer::new(move || {
         App::new()
+            .wrap(Logger::default())
             .route("/health_check", web::get().to(health_check))
             .route("/subscriptions", web::post().to(subscribe))
             .app_data(connection_pool.clone())
