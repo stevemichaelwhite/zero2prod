@@ -95,9 +95,9 @@ jobs:
       # Opens tcp port 5432 on the host and service container
         ports:
           - 5432:5432
-    container:
-      image: xd009642/tarpaulin
-      options: --security-opt seccomp=unconfined
+    # container:
+    #   image: xd009642/tarpaulin
+    #   options: --security-opt seccomp=unconfined
     steps:
       - name: Check out the repository code
         uses: actions/checkout@v4
@@ -111,7 +111,7 @@ jobs:
           --locked
       - name: Create app user in Postgres
         run: |
-          apt-get install postgresql-client
+          sudo apt-get install postgresql-client
 
           # Create the application user
           CREATE_QUERY="CREATE USER ${APP_USER} WITH PASSWORD '${APP_USER_PWD}';"
@@ -123,6 +123,8 @@ jobs:
 
       - name: Migrate database
         run: SKIP_DOCKER=true ./scripts/init_db.sh
+      - name: Install tarpaulin
+        run cargo install cargo-tarpaulin  
       - name: Generate code coverage
         run: |
           cargo tarpaulin --verbose --workspace
