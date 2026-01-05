@@ -84,8 +84,17 @@ jobs:
   coverage:
     name: Code coverage
     runs-on: ubuntu-latest
-    env:
-      SQLX_OFFLINE: true
+    services:
+      postgres:
+        image: postgres:18.1
+        env: 
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: postgres
+      # When you map ports using the ports keyword, GitHub uses the --publish command to publish the container’s ports to the Docker host
+      # Opens tcp port 5432 on the host and service container
+        ports:
+          - 5432:5432
     container:
       image: xd009642/tarpaulin
       options: --security-opt seccomp=unconfined
