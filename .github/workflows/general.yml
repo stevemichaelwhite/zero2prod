@@ -84,6 +84,8 @@ jobs:
   coverage:
     name: Code coverage
     runs-on: ubuntu-latest
+    env:
+      SQLX_OFFLINE: true
     container:
       image: xd009642/tarpaulin
       options: --security-opt seccomp=unconfined
