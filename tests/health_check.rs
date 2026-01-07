@@ -1,21 +1,38 @@
-use std::{net::TcpListener, sync::Once};
+use std::net::TcpListener;
 
-use env_logger::Env;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
-use zero2prod::configuration::{DatabaseSettings, get_configuration};
+use zero2prod::{
+    configuration::{DatabaseSettings, get_configuration},
+    telemetry::{get_subscriber, init_subscriber},
+};
 pub struct TestApp {
     pub address: String,
     pub db_pool: PgPool,
 }
+use once_cell::sync::Lazy;
 
-static INIT: Once = Once::new();
+// static INIT: Once = Once::new();
 
-fn init_logger() {
-    INIT.call_once(|| {
-        env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
-    });
-}
+// fn init_logger() {
+//     INIT.call_once(|| {
+//         env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+//     });
+// }
+static TRACING: Lazy<()> = Lazy::new(|| {
+    let default_filter_level = "info".to_string();
+    let subscriber_name = "test".to_string();
+    // We cannot assign the output of `get_subscriber` to a variable based on the value of `TEST_LOG`
+    // because the sink is part of the type returned by `get_subscriber`, therefore they are not the
+    // same type. We could work around it, but this is the most straight-forward way of moving forward.
+    if std::env::var("TEST_LOG").is_ok() {
+        let subscriber = get_subscriber(subscriber_name, default_filter_level, std::io::stdout);
+        init_subscriber(subscriber);
+    } else {
+        let subscriber = get_subscriber(subscriber_name, default_filter_level, std::io::sink);
+        init_subscriber(subscriber);
+    };
+});
 
 pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
     // Create database
@@ -37,6 +54,9 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
     connection_pool
 }
 async fn spawn_app() -> TestApp {
+    Lazy::force(&TRACING);
+    // let subscriber = get_subscriber("test".into(), "debug".into());
+    // init_subscriber(subscriber);
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind to random port");
     let port = listener.local_addr().unwrap().port();
     let address = format!("http://127.0.0.1:{}", port);
@@ -50,7 +70,7 @@ async fn spawn_app() -> TestApp {
 
 #[tokio::test]
 async fn health_check_works() {
-    init_logger();
+    // init_logger();
     let app = spawn_app().await;
     let address = app.address.as_str();
     let client = reqwest::Client::new();
@@ -66,7 +86,7 @@ async fn health_check_works() {
 
 #[tokio::test]
 async fn subscribe_returns_200_for_valid_form_data() {
-    init_logger();
+    // init_logger();
     let app = spawn_app().await;
     let address = app.address.as_str();
     let connection = app.db_pool;
@@ -91,7 +111,7 @@ async fn subscribe_returns_200_for_valid_form_data() {
 
 #[tokio::test]
 async fn subscribe_returns_400_when_data_is_missing() {
-    init_logger();
+    // init_logger();
     let app = spawn_app().await;
     let address = app.address.as_str();
     let _connection = app.db_pool;
